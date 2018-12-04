@@ -30,6 +30,31 @@ Crambda.start_lambda do |event, context|
 end
 ```
 
+Where `Crambda.start_lambda` takes a `JSON::Any` event and a `LambdaContext` and returns a `JSON::Any` response:
+
+```crystal
+def self.start_lambda(&block : (JSON::Any, LambdaContext) -> JSON::Any)
+  # ...
+end
+```
+
+And `LambdaContext` is a class that looks like this:
+
+```crystal
+class LambdaContext
+  getter function_name : String
+  getter function_version : String
+  getter function_memory_size : UInt32
+  getter log_group_name : String
+  getter log_stream_name : String
+  getter aws_request_id : String
+  getter invoked_function_arn : String
+  getter deadline : Time
+  getter identity : JSON::Any
+  getter client_context : JSON::Any
+end
+```
+
 ## Compiling and uploading to AWS Lambda
 
 Either create a static binary (this will be larger and slower):
