@@ -84,3 +84,5 @@ cp lib/crambda/libevent-2.0.so.5 bin/
 cd bin
 zip lambda.zip bootstrap libevent-2.0.so.5
 ```
+
+Then you can upload `lambda.zip` to your custom runtime Lambda
