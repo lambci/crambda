@@ -1,6 +1,6 @@
 # crambda
 
-Crystal AWS Lambda custom runtime
+[Crystal](https://crystal-lang.org/) AWS Lambda custom runtime
 
 ## Installation
 
