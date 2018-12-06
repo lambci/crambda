@@ -63,7 +63,7 @@ Creating a static binary is the easiest method, but will be larger and slower th
 
 If you're on Linux already, you can do:
 
-```
+```console
 shards install
 
 shards build --release --no-debug --static
@@ -71,19 +71,19 @@ shards build --release --no-debug --static
 strip bin/bootstrap # optional, to reduce size
 ```
 
-Then package up `bootstrap` at the top level of a zipfile
+Then package up `bootstrap` at the top level of a zipfile:
 
-```
+```console
 cd bin
 zip lambda.zip bootstrap
 ```
 
-And upload `lambda.zip` to your custom runtime AWS Lambda
+And upload `lambda.zip` to your custom runtime AWS Lambda.
 
 If you're not on Linux, you can run the install step locally (if you have crystal – `brew install crystal` on MacOS),
 and then compile in a docker container:
 
-```
+```console
 shards install
 
 docker run --rm -v "$PWD":/app -w /app crystallang/crystal sh -c \
@@ -92,21 +92,21 @@ docker run --rm -v "$PWD":/app -w /app crystallang/crystal sh -c \
 
 (then zip up your `bootstrap` executable as above)
 
-### Dynamically linked binary (more difficult, but smaller and faster)
+### Dynamically linked binary (more steps, but smaller and faster)
 
 The only libs that need to be statically linked in your binary (ie, that don't
-exist on AWS Lambda) are libevent, libgc and libcrystal. By default, crystal
-statically links the last two anyway, but libevent doesn't exist on Lambda, so
+exist on AWS Lambda) are `libevent`, `libgc` and `libcrystal`. By default, crystal
+statically links the last two anyway, but `libevent` doesn't exist on Lambda, so
 either needs to be uploaded as a separate `.so` alongside your `bootstrap`, or
 compiled in.
 
 The most straightforward way to link these libs into your binary is to use the
-ones supplied in the `ext` directory in `crambda`.
+ones supplied in the `ext` directory in `crambda`, as follows:
 
 First build a cross-compiled version of your Lambda function (you can do this
-on any machine that has `crystal`, including MacOS)
+on any machine that has `crystal`, including MacOS):
 
-```
+```console
 shards install
 
 PKG_CONFIG_PATH=lib/crambda/ext crystal build src/main.cr -o bin/bootstrap \
@@ -118,14 +118,14 @@ PKG_CONFIG_PATH=lib/crambda/ext crystal build src/main.cr -o bin/bootstrap \
 This will create a `bin/bootstrap.o` object file that you can link in a
 Lambda-like environment – eg, a machine running Amazon Linux, or in a Docker container:
 
-```
+```console
 docker run --rm -v "$PWD":/var/task lambci/lambda:build-provided cc bin/bootstrap.o -o bin/bootstrap -s \
   -rdynamic -lz -lssl -lcrypto -lpcre -lm -lgc -lpthread -lcrystal -levent -lrt -ldl -Llib/crambda/ext
 ```
 
 This will place the `bootstrap` binary in `bin` where you can zip it up and
-upload to Lambda as shown above in the static binary instructions
+upload to Lambda as shown above in the static binary instructions.
 
 If you're using a different version of `crystal` from the one supplied in `ext` (currently `0.27.0`),
 then you'll need to replace `-lcrystal` with the path to the version of
-libcrystal that matches your environment
+libcrystal that matches your environment.
