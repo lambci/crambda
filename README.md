@@ -57,32 +57,75 @@ end
 
 ## Compiling and uploading to AWS Lambda
 
-Either create a static binary (this will be larger and slower):
+### Static binary (easy, but larger and slower)
+
+Creating a static binary is the easiest method, but will be larger and slower than using dynamic libraries.
+
+If you're on Linux already, you can do:
 
 ```
-docker run -v "$PWD":/app -w /app crystallang/crystal sh -c 'shards build --release --static && strip bin/bootstrap'
+shards install
+
+shards build --release --no-debug --static
+
+strip bin/bootstrap # optional, to reduce size
+```
+
+Then package up `bootstrap` at the top level of a zipfile
+
+```
 cd bin
 zip lambda.zip bootstrap
 ```
 
-OR create your own Docker image to work from:
+And upload `lambda.zip` to your custom runtime AWS Lambda
+
+If you're not on Linux, you can run the install step locally (if you have crystal – `brew install crystal` on MacOS),
+and then compile in a docker container:
 
 ```
-FROM lambci/lambda:build-provided
+shards install
 
-RUN yum install -y libevent-devel pcre-devel
-
-RUN curl -sSL https://github.com/crystal-lang/crystal/releases/download/0.27.0/crystal-0.27.0-1-linux-x86_64.tar.gz | \
-  tar -xz -C /usr/local --strip-components 1
+docker run --rm -v "$PWD":/app -w /app crystallang/crystal sh -c \
+  'shards build --release --no-debug --static && strip bin/bootstrap'
 ```
 
-And then create your own zip with libevent (as this is not already included on Lambda)
+(then zip up your `bootstrap` executable as above)
+
+### Dynamically linked binary (more difficult, but smaller and faster)
+
+The only libs that need to be statically linked in your binary (ie, that don't
+exist on AWS Lambda) are libevent, libgc and libcrystal. By default, crystal
+statically links the last two anyway, but libevent doesn't exist on Lambda, so
+either needs to be uploaded as a separate `.so` alongside your `bootstrap`, or
+compiled in.
+
+The most straightforward way to link these libs into your binary is to use the
+ones supplied in the `ext` directory in `crambda`.
+
+First build a cross-compiled version of your Lambda function (you can do this
+on any machine that has `crystal`, including MacOS)
 
 ```
-docker run -v "$PWD":/var/task <your-docker-image> sh -c 'shards build --release && strip bin/bootstrap'
-cp lib/crambda/libevent-2.0.so.5 bin/
-cd bin
-zip lambda.zip bootstrap libevent-2.0.so.5
+shards install
+
+PKG_CONFIG_PATH=lib/crambda/ext crystal build src/main.cr -o bin/bootstrap \
+  --release --no-debug --cross-compile --target x86_64-unknown-linux-gnu
+
+# Ignore the command it outputs – it needs to be modified slightly as below
 ```
 
-Then you can upload `lambda.zip` to your custom runtime Lambda
+This will create a `bin/bootstrap.o` object file that you can link in a
+Lambda-like environment – eg, a machine running Amazon Linux, or in a Docker container:
+
+```
+docker run --rm -v "$PWD":/var/task lambci/lambda:build-provided cc bin/bootstrap.o -o bin/bootstrap -s \
+  -rdynamic -lz -lssl -lcrypto -lpcre -lm -lgc -lpthread -lcrystal -levent -lrt -ldl -Llib/crambda/ext
+```
+
+This will place the `bootstrap` binary in `bin` where you can zip it up and
+upload to Lambda as shown above in the static binary instructions
+
+If you're using a different version of `crystal` from the one supplied in `ext` (currently `0.27.0`),
+then you'll need to replace `-lcrystal` with the path to the version of
+libcrystal that matches your environment

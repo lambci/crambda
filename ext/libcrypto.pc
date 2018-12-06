@@ -1,0 +1,12 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib64
+includedir=${prefix}/include
+
+Name: OpenSSL-libcrypto
+Description: OpenSSL cryptography library
+Version: 1.0.1k
+Requires: 
+Libs: -L${libdir} -lcrypto
+Libs.private: -ldl -lz
+Cflags: -I${includedir}

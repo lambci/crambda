@@ -1,0 +1,12 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib64
+includedir=${prefix}/include
+
+Name: OpenSSL
+Description: Secure Sockets Layer and cryptography libraries
+Version: 1.0.1k
+Requires: 
+Libs: -L${libdir} -lssl -lcrypto
+Libs.private: -ldl -lz -lgssapi_krb5 -lkrb5 -lcom_err -lk5crypto
+Cflags: -I${includedir} -I/usr/include
