@@ -24,35 +24,42 @@ targets:
 require "json"
 require "crambda"
 
-Crambda.start_lambda do |event, context|
-  puts context.pretty_inspect
+def handler(event : JSON::Any, context : Crambda::Context)
+  pp context
   JSON.parse("[1, 2]")
 end
+
+Crambda.run_handler(->handler(JSON::Any, Crambda::Context))
 ```
 
-Where `Crambda.start_lambda` takes a `JSON::Any` event and a `LambdaContext` and returns a `JSON::Any` response:
+Where `Crambda.run_handler` expects a handler that takes a `JSON::Any` event
+and a `Context`, and returns a `JSON::Any` response:
 
 ```crystal
-def self.start_lambda(&block : (JSON::Any, LambdaContext) -> JSON::Any)
+def self.run_handler(handler : Proc(JSON::Any, Context, JSON::Any))
   # ...
 end
 ```
 
-And `LambdaContext` is a class that looks like this:
+And `Context` is a class that looks like this:
 
 ```crystal
-class LambdaContext
+class Context
   getter function_name : String
   getter function_version : String
-  getter function_memory_size : UInt32
+  getter memory_limit_in_mb : UInt32
   getter log_group_name : String
   getter log_stream_name : String
   getter aws_request_id : String
   getter invoked_function_arn : String
-  getter deadline : Time
+  getter deadline_ms : Int64
   getter identity : JSON::Any
   getter client_context : JSON::Any
-end
+
+  def get_remaining_time_in_millis
+    # ...
+  end
+nd
 ```
 
 ## Compiling and uploading to AWS Lambda

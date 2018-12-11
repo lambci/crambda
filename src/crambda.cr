@@ -4,28 +4,32 @@ require "json"
 module Crambda
   VERSION = "0.0.1"
 
-  class LambdaContext
+  struct Context
     getter function_name : String
     getter function_version : String
-    getter function_memory_size : UInt32
+    getter memory_limit_in_mb : UInt32
     getter log_group_name : String
     getter log_stream_name : String
     getter aws_request_id : String
     getter invoked_function_arn : String
-    getter deadline : Time
+    getter deadline_ms : Int64
     getter identity : JSON::Any
     getter client_context : JSON::Any
 
-    def initialize(@function_name, @function_version, @function_memory_size,
+    def initialize(@function_name, @function_version, @memory_limit_in_mb,
                    @log_group_name, @log_stream_name, @aws_request_id, @invoked_function_arn,
-                   @deadline, @identity, @client_context)
+                   @deadline_ms, @identity, @client_context)
+    end
+
+    def get_remaining_time_in_millis
+      @deadline_ms - Time.now.to_unix_ms
     end
   end
 
-  def self.start_lambda(&block : (JSON::Any, LambdaContext) -> JSON::Any)
+  def self.run_handler(handler : Proc(JSON::Any, Context, Object))
     function_name = ENV["AWS_LAMBDA_RUNTIME_API"]
     function_version = ENV["AWS_LAMBDA_FUNCTION_VERSION"]
-    function_memory_size = UInt32.new(ENV["AWS_LAMBDA_FUNCTION_MEMORY_SIZE"])
+    memory_limit_in_mb = UInt32.new(ENV["AWS_LAMBDA_FUNCTION_MEMORY_SIZE"])
     log_group_name = ENV["AWS_LAMBDA_LOG_GROUP_NAME"]
     log_stream_name = ENV["AWS_LAMBDA_LOG_STREAM_NAME"]
     host, port = ENV["AWS_LAMBDA_RUNTIME_API"].split(':')
@@ -40,20 +44,20 @@ module Crambda
 
       ENV["_X_AMZN_TRACE_ID"] = res.headers["Lambda-Runtime-Trace-Id"]? || ""
 
-      context = LambdaContext.new(
+      context = Context.new(
         function_name,
         function_version,
-        function_memory_size,
+        memory_limit_in_mb,
         log_group_name,
         log_stream_name,
         res.headers["Lambda-Runtime-Aws-Request-Id"],
         res.headers["Lambda-Runtime-Invoked-Function-Arn"],
-        Time.unix_ms(Int64.new(res.headers["Lambda-Runtime-Deadline-Ms"])),
+        Int64.new(res.headers["Lambda-Runtime-Deadline-Ms"]),
         JSON.parse(res.headers["Lambda-Runtime-Cognito-Identity"]? || "null"),
         JSON.parse(res.headers["Lambda-Runtime-Client-Context"]? || "null"),
       )
 
-      result = block.call(JSON.parse(res.body), context)
+      result = handler.call(JSON.parse(res.body), context)
 
       res = client.post("/2018-06-01/runtime/invocation/#{context.aws_request_id}/response", body: result.to_json)
       if res.status_code != 202
