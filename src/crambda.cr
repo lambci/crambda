@@ -38,7 +38,7 @@ module Crambda
         raise "Unexpected response when invoking: #{res.status_code}"
       end
 
-      ENV["_X_AMZN_TRACE_ID"] = res.headers["Lambda-Runtime-Aws-Request-Id"]? || ""
+      ENV["_X_AMZN_TRACE_ID"] = res.headers["Lambda-Runtime-Trace-Id"]? || ""
 
       context = LambdaContext.new(
         function_name,
