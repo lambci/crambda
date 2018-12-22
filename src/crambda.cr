@@ -65,4 +65,8 @@ module Crambda
       end
     end
   end
+
+  def self.run_handler(&block : JSON::Any, Context -> T) forall T
+    run_handler block
+  end
 end
