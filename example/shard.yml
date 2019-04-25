@@ -1,0 +1,10 @@
+name: example
+version: 0.1.0
+
+dependencies:
+  crambda:
+    github: lambci/crambda
+
+targets:
+  bootstrap:
+    main: src/main.cr
