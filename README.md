@@ -133,6 +133,6 @@ docker run --rm -v "$PWD":/var/task lambci/lambda:build-provided cc bin/bootstra
 This will place the `bootstrap` binary in `bin` where you can zip it up and
 upload to Lambda as shown above in the static binary instructions.
 
-If you're using a different version of `crystal` from the one supplied in `ext` (currently `0.27.0`),
+If you're using a different version of `crystal` from the one supplied in `ext` (currently `0.28.0`),
 then you'll need to replace `-lcrystal` with the path to the version of
 libcrystal that matches your environment.

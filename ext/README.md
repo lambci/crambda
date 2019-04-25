@@ -3,18 +3,18 @@
 These pieces are not specific to crambda – but they can be used to help build
 crambda binaries for the Lambda environment.
 
-`libcrystal.a` (0.27.0) was extracted as follows:
+`libcrystal.a` (0.28.0) was extracted as follows:
 
 ```
-curl -sSL https://github.com/crystal-lang/crystal/releases/download/0.27.0/crystal-0.27.0-1-linux-x86_64.tar.gz | \
-  tar -xz --strip-components 5 -- crystal-0.27.0-1/share/crystal/src/ext/libcrystal.a
+curl -sSL https://github.com/crystal-lang/crystal/releases/download/0.28.0/crystal-0.28.0-1-linux-x86_64.tar.gz | \
+  tar -xz --strip-components 5 -- crystal-0.28.0-1/share/crystal/src/ext/libcrystal.a
 ```
 
 `libgc.a` (7.6.8) was extracted as follows:
 
 ```
-curl -sSL https://github.com/crystal-lang/crystal/releases/download/0.27.0/crystal-0.27.0-1-linux-x86_64.tar.gz | \
-  tar -xz --strip-components 4 -- crystal-0.27.0-1/lib/crystal/lib/libgc.a
+curl -sSL https://github.com/crystal-lang/crystal/releases/download/0.28.0/crystal-0.28.0-1-linux-x86_64.tar.gz | \
+  tar -xz --strip-components 4 -- crystal-0.28.0-1/lib/crystal/lib/libgc.a
 ```
 
 `libevent.a` (2.1.8) was built as follows:
