@@ -24,24 +24,13 @@ targets:
 require "json"
 require "crambda"
 
-def handler(event : JSON::Any, context : Crambda::Context)
+Crambda.run_handler do |event, context|
   pp context
-  JSON.parse("[1, 2]")
-end
-
-Crambda.run_handler(->handler(JSON::Any, Crambda::Context))
-```
-
-Where `Crambda.run_handler` expects a handler that takes a `JSON::Any` event
-and a `Context`, and returns a `JSON::Any` response:
-
-```crystal
-def self.run_handler(handler : Proc(JSON::Any, Context, JSON::Any))
-  # ...
+  [1, 2]
 end
 ```
 
-And `Context` is a class that looks like this:
+`Crambda.run_handler` expects a block that takes a `JSON::Any` event and a `Crambda::Context` and returns an object that implements `to_json`. The `Crambda::Context` is a class that looks like this:
 
 ```crystal
 class Context
