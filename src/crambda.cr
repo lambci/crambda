@@ -27,7 +27,7 @@ module Crambda
   end
 
   def self.run_handler(handler : Proc(JSON::Any, Context, Object))
-    function_name = ENV["AWS_LAMBDA_RUNTIME_API"]
+    function_name = ENV["AWS_LAMBDA_FUNCTION_NAME"]
     function_version = ENV["AWS_LAMBDA_FUNCTION_VERSION"]
     memory_limit_in_mb = UInt32.new(ENV["AWS_LAMBDA_FUNCTION_MEMORY_SIZE"])
     log_group_name = ENV["AWS_LAMBDA_LOG_GROUP_NAME"]
